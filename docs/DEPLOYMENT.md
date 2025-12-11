@@ -24,49 +24,54 @@ This guide covers deploying the RAG MCP Server to production environments.
 ### Production Deployment
 
 1. **Clone the repository**:
-```bash
-git clone <your-repo-url>
-cd rag-mcp-server
-```
+
+    ```bash
+    git clone <your-repo-url>
+    cd rag-mcp-server
+    ```
 
 2. **Create production environment file**:
-```bash
-cp .env.example .env
-```
+
+    ```bash
+    cp .env.example .env
+    ```
 
 3. **Configure production settings**:
-```env
-# Database (use strong passwords!)
-DB_PASSWORD=<strong-random-password>
 
-# Embedding provider
-EMBEDDING_PROVIDER=openai  # or 'local' for self-hosted
-OPENAI_API_KEY=sk-...      # if using OpenAI
+    ```env
+    # Database (use strong passwords!)
+    DB_PASSWORD=<strong-random-password>
 
-# Security
-REDIS_PASSWORD=<redis-password>
+    # Embedding provider
+    EMBEDDING_PROVIDER=openai  # or 'local' for self-hosted
+    OPENAI_API_KEY=sk-...      # if using OpenAI
 
-# Environment
-NODE_ENV=production
-LOG_LEVEL=warn
-```
+    # Security
+    REDIS_PASSWORD=<redis-password>
+
+    # Environment
+    NODE_ENV=production
+    LOG_LEVEL=warn
+    ```
 
 4. **Start services**:
-```bash
-docker-compose up -d
-```
+
+    ```bash
+    docker-compose up -d
+    ```
 
 5. **Verify deployment**:
-```bash
-# Check all services are running
-docker-compose ps
 
-# Check health
-curl http://localhost:3000/health
+    ```bash
+    # Check all services are running
+    docker-compose ps
 
-# View logs
-docker-compose logs -f rag-server
-```
+    # Check health
+    curl http://localhost:3000/health
+
+    # View logs
+    docker-compose logs -f rag-server
+    ```
 
 ### Update Deployment
 
@@ -95,6 +100,7 @@ DB_PASSWORD=<strong-password>  # MUST be secure in production
 ```
 
 **Security Notes**:
+
 - Use a strong, randomly generated password (20+ characters)
 - Never commit `.env` to version control
 - Rotate passwords regularly
@@ -110,21 +116,25 @@ REDIS_PASSWORD=<optional-password>  # Recommended for production
 
 #### Embedding Provider
 
-**Option 1: Local (Free, Private)**
+#### Option 1: Local (Free, Private)
+
 ```env
 EMBEDDING_PROVIDER=local
 ```
+
 - No external dependencies
 - ~1-2 seconds per document
 - 384-dimensional vectors
 - Model auto-downloads (~100MB)
 
-**Option 2: OpenAI (Best Quality)**
+#### Option 2: OpenAI (Best Quality)
+
 ```env
 EMBEDDING_PROVIDER=openai
 OPENAI_API_KEY=sk-proj-...
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 ```
+
 - Costs: ~$0.0001 per 1K tokens
 - Fast batch processing
 - 1536 or 3072 dimensions
@@ -144,11 +154,13 @@ CACHE_TTL=3600         # Cache time-to-live in seconds
 ### Built-in Endpoints
 
 #### Health Check
+
 ```bash
 curl http://localhost:3000/health
 ```
 
 **Response**:
+
 ```json
 {
   "status": "healthy",
@@ -159,15 +171,18 @@ curl http://localhost:3000/health
 ```
 
 **Status Codes**:
+
 - `200`: All systems operational
 - `503`: Service unavailable (database down, etc.)
 
 #### Metrics
+
 ```bash
 curl http://localhost:3000/metrics
 ```
 
 **Response**:
+
 ```json
 {
   "requestCount": 5432,
@@ -192,19 +207,22 @@ docker inspect rag-mcp-server | grep -A 10 Health
 ### Monitoring Best Practices
 
 1. **Set up external monitoring**:
-   - Use tools like Uptime Robot, Pingdom, or custom scripts
-   - Monitor `/health` endpoint every 60 seconds
-   - Alert on 3+ consecutive failures
+
+    - Use tools like Uptime Robot, Pingdom, or custom scripts
+    - Monitor `/health` endpoint every 60 seconds
+    - Alert on 3+ consecutive failures
 
 2. **Log aggregation**:
-   - Collect logs from all containers
-   - Use ELK stack, Grafana Loki, or cloud logging
-   - Set up alerts for ERROR level logs
+
+    - Collect logs from all containers
+    - Use ELK stack, Grafana Loki, or cloud logging
+    - Set up alerts for ERROR level logs
 
 3. **Metrics tracking**:
-   - Track request count, error rate, response time
-   - Monitor database size growth
-   - Track embedding API usage (if using OpenAI)
+
+    - Track request count, error rate, response time
+    - Monitor database size growth
+    - Track embedding API usage (if using OpenAI)
 
 ## Scaling
 
@@ -222,6 +240,7 @@ services:
 ```
 
 **Notes**:
+
 - PostgreSQL and Redis are shared across instances
 - Use a load balancer (nginx, HAProxy)
 - Embedding model cache is per-instance
@@ -249,26 +268,29 @@ services:
 For large datasets (1M+ documents):
 
 1. **Enable connection pooling**:
-   - Increase `max_connections` in PostgreSQL
-   - Use PgBouncer for connection pooling
+
+    - Increase `max_connections` in PostgreSQL
+    - Use PgBouncer for connection pooling
 
 2. **Optimize indexes**:
-```sql
--- Tune HNSW index for your workload
-DROP INDEX IF EXISTS rag.embeddings_embedding_idx;
-CREATE INDEX embeddings_embedding_idx 
-ON rag.embeddings 
-USING hnsw (embedding vector_cosine_ops)
-WITH (m = 32, ef_construction = 128);  -- Higher values = better recall, slower build
-```
+
+    ```sql
+    -- Tune HNSW index for your workload
+    DROP INDEX IF EXISTS rag.embeddings_embedding_idx;
+    CREATE INDEX embeddings_embedding_idx 
+    ON rag.embeddings 
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 32, ef_construction = 128);  -- Higher values = better recall, slower build
+    ```
 
 3. **Partition tables** (for 10M+ documents):
-```sql
--- Partition by creation date
-CREATE TABLE rag.documents_partitioned (
-  LIKE rag.documents INCLUDING ALL
-) PARTITION BY RANGE (created_at);
-```
+
+    ```sql
+    -- Partition by creation date
+    CREATE TABLE rag.documents_partitioned (
+      LIKE rag.documents INCLUDING ALL
+    ) PARTITION BY RANGE (created_at);
+    ```
 
 ## Backup & Recovery
 
@@ -324,52 +346,59 @@ docker run --rm \
 ### Best Practices
 
 1. **Network Security**:
-   - Use Docker networks (already configured)
-   - Don't expose PostgreSQL/Redis ports externally in production
-   - Use firewall rules (ufw, iptables)
+
+    - Use Docker networks (already configured)
+    - Don't expose PostgreSQL/Redis ports externally in production
+    - Use firewall rules (ufw, iptables)
 
 2. **Secrets Management**:
-   - Never commit `.env` file
-   - Use Docker secrets or environment variable injection
-   - Rotate credentials regularly
+
+    - Never commit `.env` file
+    - Use Docker secrets or environment variable injection
+    - Rotate credentials regularly
 
 3. **Database Security**:
-   - Use strong passwords (20+ characters)
-   - Enable SSL for PostgreSQL connections
-   - Restrict database user permissions
+
+    - Use strong passwords (20+ characters)
+    - Enable SSL for PostgreSQL connections
+    - Restrict database user permissions
 
 4. **API Security**:
-   - Implement rate limiting
-   - Add authentication to MCP endpoints (custom wrapper)
-   - Monitor for unusual activity
+
+    - Implement rate limiting
+    - Add authentication to MCP endpoints (custom wrapper)
+    - Monitor for unusual activity
 
 ### SSL/TLS Configuration
 
 To enable SSL for PostgreSQL:
 
 1. **Generate certificates**:
-```bash
-openssl req -new -x509 -days 365 -nodes -text \
-  -out server.crt -keyout server.key
-chmod 600 server.key
-```
+
+    ```bash
+    openssl req -new -x509 -days 365 -nodes -text \
+      -out server.crt -keyout server.key
+    chmod 600 server.key
+    ```
 
 2. **Update docker-compose.yml**:
-```yaml
-postgres:
-  command: >
-    -c ssl=on
-    -c ssl_cert_file=/var/lib/postgresql/server.crt
-    -c ssl_key_file=/var/lib/postgresql/server.key
-  volumes:
-    - ./server.crt:/var/lib/postgresql/server.crt
-    - ./server.key:/var/lib/postgresql/server.key
-```
+
+    ```yaml
+    postgres:
+      command: >
+        -c ssl=on
+        -c ssl_cert_file=/var/lib/postgresql/server.crt
+        -c ssl_key_file=/var/lib/postgresql/server.key
+      volumes:
+        - ./server.crt:/var/lib/postgresql/server.crt
+        - ./server.key:/var/lib/postgresql/server.key
+    ```
 
 3. **Update connection string**:
-```env
-DB_SSL=true
-```
+
+    ```env
+    DB_SSL=true
+    ```
 
 ## Troubleshooting
 
@@ -438,36 +467,40 @@ docker-compose logs -f
 ### Performance Tuning
 
 1. **Adjust PostgreSQL settings**:
-```sql
--- Increase shared buffers (25% of RAM)
-ALTER SYSTEM SET shared_buffers = '1GB';
 
--- Increase work_mem for sorting
-ALTER SYSTEM SET work_mem = '64MB';
+    ```sql
+    -- Increase shared buffers (25% of RAM)
+    ALTER SYSTEM SET shared_buffers = '1GB';
 
--- Tune HNSW parameters
-ALTER SYSTEM SET hnsw.ef_search = 100;  -- Higher = better recall, slower
-```
+    -- Increase work_mem for sorting
+    ALTER SYSTEM SET work_mem = '64MB';
+
+    -- Tune HNSW parameters
+    ALTER SYSTEM SET hnsw.ef_search = 100;  -- Higher = better recall, slower
+    ```
 
 2. **Optimize Redis**:
-```bash
-# Increase max memory
-docker-compose exec redis redis-cli CONFIG SET maxmemory 2gb
-docker-compose exec redis redis-cli CONFIG SET maxmemory-policy allkeys-lru
-```
+
+    ```bash
+    # Increase max memory
+    docker-compose exec redis redis-cli CONFIG SET maxmemory 2gb
+    docker-compose exec redis redis-cli CONFIG SET maxmemory-policy allkeys-lru
+    ```
 
 3. **Application tuning**:
-```env
-# Increase cache TTL
-CACHE_TTL=7200
 
-# Reduce batch size if memory constrained
-MAX_BATCH_SIZE=50
-```
+    ```env
+    # Increase cache TTL
+    CACHE_TTL=7200
+
+    # Reduce batch size if memory constrained
+    MAX_BATCH_SIZE=50
+    ```
 
 ## Support
 
 For issues and questions:
+
 - Check the [README](../README.md)
 - Open an issue on GitHub
 - Review logs with `docker-compose logs`

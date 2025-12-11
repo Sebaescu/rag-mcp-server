@@ -1,4 +1,5 @@
 # RAG MCP Server
+
 A production-ready **Retrieval-Augmented Generation (RAG)** server implementing the **Model Context Protocol (MCP)**. Built for seamless integration with AI assistants like Cline, providing powerful semantic search capabilities over your documents.
 
 ## ✨ Features
@@ -14,7 +15,7 @@ A production-ready **Retrieval-Augmented Generation (RAG)** server implementing 
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────┐
 │   Cline AI  │
 └──────┬──────┘
@@ -37,72 +38,86 @@ A production-ready **Retrieval-Augmented Generation (RAG)** server implementing 
 ### Using Docker (Recommended)
 
 1. **Clone and setup**:
-```bash
-git clone <your-repo-url>
-cd rag-mcp-server
-cp .env.example .env
-```
+
+    ```bash
+    git clone <your-repo-url>
+    cd rag-mcp-server
+    cp .env.example .env
+    ```
 
 2. **Configure environment**:
-Edit `.env` and set your preferences:
-```env
-EMBEDDING_PROVIDER=local  # or 'openai'
-OPENAI_API_KEY=sk-...     # only if using OpenAI
-```
+
+    Edit `.env` and set your preferences:
+
+    ```env
+    EMBEDDING_PROVIDER=local  # or 'openai'
+    OPENAI_API_KEY=sk-...     # only if using OpenAI
+    ```
 
 3. **Start services**:
-```bash
-npm run docker:up
-```
+
+    ```bash
+    npm run docker:up
+    ```
 
 4. **Verify health**:
-```bash
-curl http://localhost:3000/health
-```
+
+    ```bash
+    curl http://localhost:3000/health
+    ```
 
 ### Local Development
 
 1. **Prerequisites**:
-   - Node.js 20+
-   - PostgreSQL 16 with pgvector
-   - Redis 7+
+
+    - Node.js 20+
+    - PostgreSQL 16 with pgvector
+    - Redis 7+
 
 2. **Install dependencies**:
-```bash
-npm install
-```
+
+    ```bash
+    npm install
+    ```
 
 3. **Setup database**:
-```bash
-psql -U postgres -f docker/init.sql
-```
+
+    ```bash
+    psql -U postgres -f docker/init.sql
+    ```
 
 4. **Configure environment**:
-```bash
-cp .env.example .env
-# Edit .env with your database credentials
-```
+
+    ```bash
+    cp .env.example .env
+    # Edit .env with your database credentials
+    ```
 
 5. **Build and run**:
-```bash
-npm run build
-npm start
-```
 
-Or for development with hot reload:
-```bash
-npm run dev
-```
+    ```bash
+    npm run build
+    npm start
+    ```
+
+    Or for development with hot reload:
+
+    ```bash
+    npm run dev
+    ```
 
 ## ⚙️ Configuration
 
 ### Embedding Providers
 
 #### Local Embeddings (Default)
+
 Uses [Xenova/transformers](https://github.com/xenova/transformers.js) for on-device embeddings:
+
 ```env
 EMBEDDING_PROVIDER=local
 ```
+
 - ✅ Free and private
 - ✅ No API keys needed
 - ✅ Works offline
@@ -110,12 +125,15 @@ EMBEDDING_PROVIDER=local
 - ⚠️ Slower for large batches
 
 #### OpenAI Embeddings
+
 Uses OpenAI's embedding models for highest quality:
+
 ```env
 EMBEDDING_PROVIDER=openai
 OPENAI_API_KEY=sk-your-api-key
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # or text-embedding-3-large
 ```
+
 - ✅ Best quality embeddings
 - ✅ Fast batch processing
 - ⚠️ Requires API key and costs money
@@ -123,33 +141,36 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # or text-embedding-3-large
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `EMBEDDING_PROVIDER` | `local` or `openai` | `local` |
-| `OPENAI_API_KEY` | OpenAI API key (if provider=openai) | - |
-| `OPENAI_EMBEDDING_MODEL` | OpenAI model name | `text-embedding-3-small` |
-| `DB_HOST` | PostgreSQL host | `localhost` |
-| `DB_PORT` | PostgreSQL port | `5432` |
-| `DB_NAME` | Database name | `rag_db` |
-| `DB_USER` | Database user | `rag_user` |
-| `DB_PASSWORD` | Database password | - |
-| `REDIS_HOST` | Redis host | `localhost` |
-| `REDIS_PORT` | Redis port | `6379` |
-| `REDIS_DB` | Redis database number | `1` |
-| `PORT` | HTTP server port | `3000` |
-| `NODE_ENV` | Environment | `production` |
+| Variable                | Description                          | Default                 |
+|-------------------------|--------------------------------------|-------------------------|
+| `EMBEDDING_PROVIDER`    | `local` or `openai`                  | `local`                 |
+| `OPENAI_API_KEY`        | OpenAI API key (if provider=openai)  | -                       |
+| `OPENAI_EMBEDDING_MODEL`| OpenAI model name                    | `text-embedding-3-small`|
+| `DB_HOST`               | PostgreSQL host                      | `localhost`             |
+| `DB_PORT`               | PostgreSQL port                      | `5432`                  |
+| `DB_NAME`               | Database name                        | `rag_db`                |
+| `DB_USER`               | Database user                        | `rag_user`              |
+| `DB_PASSWORD`           | Database password                    | -                       |
+| `REDIS_HOST`            | Redis host                           | `localhost`             |
+| `REDIS_PORT`            | Redis port                           | `6379`                  |
+| `REDIS_DB`              | Redis database number                | `1`                     |
+| `PORT`                  | HTTP server port                     | `3000`                  |
+| `NODE_ENV`              | Environment                          | `production`            |
 
 ## 🛠️ MCP Tools Reference
 
 ### `rag_query`
+
 Query the RAG system for relevant documents.
 
 **Parameters**:
+
 - `query` (string, required): Search query
 - `topK` (number, optional): Number of results (default: 5)
 - `similarityThreshold` (number, optional): Minimum similarity 0-1 (default: 0.7)
 
 **Example**:
+
 ```json
 {
   "query": "How to deploy with Docker?",
@@ -159,13 +180,16 @@ Query the RAG system for relevant documents.
 ```
 
 ### `rag_add_document`
+
 Add a single document to the system.
 
 **Parameters**:
+
 - `content` (string, required): Document text
 - `metadata` (object, optional): Custom metadata
 
 **Example**:
+
 ```json
 {
   "content": "Docker deployment guide...",
@@ -177,12 +201,15 @@ Add a single document to the system.
 ```
 
 ### `rag_add_documents`
+
 Batch add multiple documents (more efficient).
 
 **Parameters**:
+
 - `documents` (array, required): Array of document objects
 
 **Example**:
+
 ```json
 {
   "documents": [
@@ -193,20 +220,25 @@ Batch add multiple documents (more efficient).
 ```
 
 ### `rag_delete_document`
+
 Delete a document by ID.
 
 **Parameters**:
+
 - `documentId` (number, required): Document ID to delete
 
 ### `rag_index_website`
+
 Crawl and index an entire website.
 
 **Parameters**:
+
 - `url` (string, required): Website URL
 - `maxDepth` (number, optional): Crawl depth (default: 2)
 - `maxPages` (number, optional): Max pages to crawl (default: 50)
 
 **Example**:
+
 ```json
 {
   "url": "https://docs.example.com",
@@ -216,16 +248,19 @@ Crawl and index an entire website.
 ```
 
 ### `rag_get_stats`
+
 Get system statistics and health information.
 
 ## 🏥 Health Checks & Monitoring
 
 ### Health Endpoint
+
 ```bash
 curl http://localhost:3000/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -236,11 +271,13 @@ Response:
 ```
 
 ### Metrics Endpoint
+
 ```bash
 curl http://localhost:3000/metrics
 ```
 
 Response:
+
 ```json
 {
   "requestCount": 1247,
@@ -270,7 +307,8 @@ npm run docker:logs  # View server logs
 
 ### Tables
 
-**rag.documents**
+#### rag.documents
+
 - `id`: Primary key
 - `content`: Document text
 - `metadata`: JSONB metadata
@@ -278,13 +316,15 @@ npm run docker:logs  # View server logs
 - `title`: Document title
 - `created_at`, `updated_at`: Timestamps
 
-**rag.embeddings**
+#### rag.embeddings
+
 - `id`: Primary key
 - `document_id`: Foreign key to documents
 - `embedding`: vector(384) - Embedding vector
 - `created_at`, `updated_at`: Timestamps
 
 ### Indexes
+
 - HNSW index on embeddings for fast vector similarity
 - GIN index on metadata for JSON queries
 - B-tree indexes on common query fields
@@ -292,6 +332,7 @@ npm run docker:logs  # View server logs
 ## 🔧 Troubleshooting
 
 ### Database connection issues
+
 ```bash
 # Check PostgreSQL is running
 docker-compose ps
@@ -301,6 +342,7 @@ docker-compose logs postgres
 ```
 
 ### Embedding model download issues
+
 ```bash
 # Clear model cache
 rm -rf models/
@@ -310,7 +352,9 @@ npm run docker:down && npm run docker:up
 ```
 
 ### Port conflicts
+
 If port 3000, 5432, or 6379 is already in use, update `.env`:
+
 ```env
 PORT=3001
 DB_PORT=5433
@@ -323,7 +367,5 @@ REDIS_PORT=6380
 - [pgvector Documentation](https://github.com/pgvector/pgvector)
 - [Xenova Transformers.js](https://github.com/xenova/transformers.js)
 - [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings)
-
-
 
 Built with ❤️ for the AI community
